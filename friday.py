@@ -55,7 +55,7 @@ class FRIDAY:
         self._print_boot_banner()
 
     def _print_boot_banner(self):
-        banner = """
+        banner = r"""
 +--------------------------------------------------------------+
 |                                                              |
 |   ______  ____   _____  _____      _     __  __             |
