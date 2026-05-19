@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRIDAY — AI Assistant</title>
+  <meta name="description" content="FRIDAY — Female Replacement Intelligent Digital Assistant. Your personal Iron Man AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div id="scanlines"></div>
+  <canvas id="particles-bg"></canvas>
+
+  <!-- ── BOOT SCREEN ─────────────────────────────────────────────── -->
+  <div id="boot-screen">
+    <div class="boot-arc-reactor">
+      <div class="arc-ring ring-1"></div>
+      <div class="arc-ring ring-2"></div>
+      <div class="arc-ring ring-3"></div>
+      <div class="arc-core"></div>
+    </div>
+    <div class="boot-logo">FRIDAY</div>
+    <div class="boot-subtitle">Female Replacement Intelligent Digital Assistant</div>
+    <div class="boot-progress">
+      <div class="boot-bar" id="boot-bar"></div>
+    </div>
+    <div class="boot-status" id="boot-status">Initializing neural networks...</div>
+  </div>
+
+  <!-- ── MAIN DASHBOARD ──────────────────────────────────────────── -->
+  <div id="app" class="hidden">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="friday-logo">
+          <div class="logo-ring">
+            <div class="logo-ring-inner"></div>
+          </div>
+          <span class="logo-text">FRIDAY</span>
+          <span class="logo-version">v1.0</span>
+        </div>
+        <div class="status-indicator">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-text" id="status-text">CONNECTING</span>
+        </div>
+      </div>
+      <div class="topbar-center">
+        <div class="datetime-display">
+          <div class="time" id="time-display">--:-- --</div>
+          <div class="date" id="date-display">Loading...</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="emotion-badge" id="emotion-badge">
+          <div class="emotion-icon" id="emotion-icon">◎</div>
+          <span id="emotion-label">NEUTRAL</span>
+        </div>
+        <button class="hud-btn" id="mic-toggle" title="Toggle microphone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-grid">
+
+      <!-- ── LEFT PANEL: System Stats ──────────────────────────── -->
+      <aside class="panel panel-left">
+        <div class="panel-header">
+          <span class="panel-title">SYSTEM STATUS</span>
+          <div class="panel-line"></div>
+        </div>
+
+        <!-- CPU Gauge -->
+        <div class="metric-card">
+          <div class="metric-ring" id="cpu-ring">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" class="ring-bg"/>
+              <circle cx="50" cy="50" r="42" class="ring-fill" id="cpu-circle"
+                stroke-dasharray="0 264" stroke-dashoffset="66"/>
+            </svg>
+            <div class="metric-value" id="cpu-value">0%</div>
+          </div>
+          <div class="metric-label">CPU</div>
+        </div>
+
+        <!-- RAM Gauge -->
+        <div class="metric-card">
+          <div class="metric-ring" id="ram-ring">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" class="ring-bg"/>
+              <circle cx="50" cy="50" r="42" class="ring-fill" id="ram-circle"
+                stroke-dasharray="0 264" stroke-dashoffset="66"/>
+            </svg>
+            <div class="metric-value" id="ram-value">0%</div>
+          </div>
+          <div class="metric-label">MEMORY</div>
+        </div>
+
+        <!-- Battery Gauge -->
+        <div class="metric-card">
+          <div class="metric-ring" id="bat-ring">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" class="ring-bg"/>
+              <circle cx="50" cy="50" r="42" class="ring-fill battery-fill" id="bat-circle"
+                stroke-dasharray="0 264" stroke-dashoffset="66"/>
+            </svg>
+            <div class="metric-value" id="bat-value">--%</div>
+          </div>
+          <div class="metric-label">BATTERY</div>
+        </div>
+
+        <!-- Disk -->
+        <div class="metric-bar-card">
+          <div class="metric-bar-label">
+            <span>DISK</span>
+            <span id="disk-value">--%</span>
+          </div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="disk-fill"></div>
+          </div>
+        </div>
+
+        <!-- Memory Count -->
+        <div class="stat-chip">
+          <span class="chip-label">MEMORIES</span>
+          <span class="chip-value" id="memory-count">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="chip-label">IDLE TIME</span>
+          <span class="chip-value" id="idle-time">—</span>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="panel-header" style="margin-top:24px">
+          <span class="panel-title">QUICK ACTIONS</span>
+          <div class="panel-line"></div>
+        </div>
+        <div class="quick-actions">
+          <button class="qa-btn" onclick="quickAction('get_system_info', {})">📊 System Info</button>
+          <button class="qa-btn" onclick="quickAction('take_screenshot', {})">📸 Screenshot</button>
+          <button class="qa-btn" onclick="quickAction('get_weather', {city: 'auto'})">🌤 Weather</button>
+          <button class="qa-btn" onclick="quickAction('get_time_date', {})">🕐 Time</button>
+          <button class="qa-btn" onclick="quickAction('lock_system', {})">🔒 Lock</button>
+          <button class="qa-btn" onclick="quickAction('get_running_processes', {})">⚙️ Processes</button>
+        </div>
+      </aside>
+
+      <!-- ── CENTER: Voice + Chat ───────────────────────────────── -->
+      <section class="panel panel-center">
+
+        <!-- Voice Visualizer -->
+        <div class="voice-section">
+          <div class="voice-orb" id="voice-orb">
+            <div class="orb-ring or-1"></div>
+            <div class="orb-ring or-2"></div>
+            <div class="orb-ring or-3"></div>
+            <canvas id="voice-canvas" width="200" height="200"></canvas>
+            <div class="orb-core" id="orb-core">
+              <div class="orb-icon" id="orb-icon">◎</div>
+            </div>
+          </div>
+          <div class="voice-state" id="voice-state">STANDBY</div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-container" id="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <!-- Messages appear here -->
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="input-bar">
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Send a command or just talk to FRIDAY..."
+              autocomplete="off"
+            />
+            <button class="send-btn" id="send-btn" onclick="sendMessage()">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── RIGHT PANEL: Memory & Facts ──────────────────────── -->
+      <aside class="panel panel-right">
+        <div class="panel-header">
+          <span class="panel-title">NEURAL MEMORY</span>
+          <div class="panel-line"></div>
+        </div>
+
+        <!-- Memory Search -->
+        <div class="memory-search">
+          <input type="text" id="memory-search" placeholder="Search memories..." />
+          <button onclick="searchMemory()">⌕</button>
+        </div>
+
+        <!-- Memory List -->
+        <div class="memory-list" id="memory-list">
+          <div class="memory-loading">Loading memories...</div>
+        </div>
+
+        <!-- Owner Facts -->
+        <div class="panel-header" style="margin-top:20px">
+          <span class="panel-title">OWNER PROFILE</span>
+          <div class="panel-line"></div>
+        </div>
+        <div class="facts-list" id="facts-list">
+          <div class="facts-loading">Loading profile...</div>
+        </div>
+
+        <!-- Emotion History -->
+        <div class="panel-header" style="margin-top:20px">
+          <span class="panel-title">EMOTION STATE</span>
+          <div class="panel-line"></div>
+        </div>
+        <div class="emotion-meter" id="emotion-meter">
+          <div class="em-row">
+            <span>Valence</span>
+            <div class="em-bar-track"><div class="em-bar" id="em-valence"></div></div>
+          </div>
+          <div class="em-row">
+            <span>Arousal</span>
+            <div class="em-bar-track"><div class="em-bar" id="em-arousal"></div></div>
+          </div>
+          <div class="em-row">
+            <span>Rapport</span>
+            <div class="em-bar-track"><div class="em-bar em-rapport" id="em-rapport"></div></div>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
