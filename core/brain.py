@@ -246,16 +246,8 @@ Remember to express your current emotion ({new_emotion.name}) authentically.
         results = []
         clean_response = response
 
-        # Known valid actions — only execute real ones, not doc examples
-        VALID_ACTIONS = {
-            "create_file", "read_file", "delete_file", "list_directory",
-            "search_files", "run_command", "open_application", "close_application",
-            "get_system_info", "open_url", "web_search", "send_whatsapp",
-            "send_email", "take_screenshot", "type_text", "click_at",
-            "press_key", "set_volume", "get_weather", "get_time_date",
-            "set_reminder", "get_clipboard", "set_clipboard", "lock_system",
-            "sleep_system", "get_running_processes", "play_media",
-        }
+        # Use the dynamic action map from the agent
+        VALID_ACTIONS = self.agent.ACTION_MAP.keys()
 
         # Find all action blocks
         action_pattern = r"```action\s*\n(.*?)\n```"
@@ -304,25 +296,28 @@ Remember to express your current emotion ({new_emotion.name}) authentically.
         return clean_response, results
 
     async def _extract_and_learn_facts(self, text: str):
-        """Extract facts from user input to remember."""
-        # Simple heuristic fact extraction
-        facts_to_learn = []
-        text_lower = text.lower()
+        """Extract facts from user input using the LLM."""
+        prompt = f"""
+Analyze the following user input and extract any personal facts, preferences, or identities.
+Return the result as a JSON list of objects with "key" and "value".
+Example: [{"key": "favorite_color", "value": "blue"}, {"key": "owner_name", "value": "Chiranthan"}]
 
-        if "my name is" in text_lower:
+User input: "{text}"
+"""
+        try:
+            # Use the LLM to extract facts
+            response = await self._call_llm(prompt)
+            
+            # Extract JSON list from response
             import re
-            match = re.search(r"my name is (\w+)", text_lower)
+            match = re.search(r"\[\s*\{.*\}\s*\]", response, re.DOTALL)
             if match:
-                facts_to_learn.append(("owner_name", match.group(1).title()))
-
-        if "i like" in text_lower or "i love" in text_lower:
-            facts_to_learn.append(("preference", text[:100]))
-
-        if "i work" in text_lower or "i am a" in text_lower or "i'm a" in text_lower:
-            facts_to_learn.append(("occupation", text[:100]))
-
-        for key, value in facts_to_learn:
-            await self.memory.learn_fact(key, value)
+                facts = json.loads(match.group(0))
+                for fact in facts:
+                    if "key" in fact and "value" in fact:
+                        await self.memory.learn_fact(fact["key"], fact["value"])
+        except Exception as e:
+            logger.debug(f"Fact extraction error: {e}")
 
     def get_idle_minutes(self) -> float:
         """How long since the last interaction."""

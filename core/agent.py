@@ -46,6 +46,36 @@ class SystemAgent:
     Handles all system-level tasks with full Windows control.
     """
 
+    # Action map for routing parsed actions to handlers
+    ACTION_MAP = {
+        "create_file": "create_file",
+        "read_file": "read_file",
+        "delete_file": "delete_file",
+        "list_directory": "list_directory",
+        "search_files": "search_files",
+        "run_command": "run_command",
+        "open_application": "open_application",
+        "close_application": "close_application",
+        "get_system_info": "get_system_info",
+        "open_url": "open_url",
+        "web_search": "web_search",
+        "send_whatsapp": "send_whatsapp_message",
+        "send_email": "send_email",
+        "take_screenshot": "take_screenshot",
+        "type_text": "type_text",
+        "click_at": "click_at",
+        "press_key": "press_key",
+        "set_volume": "set_volume",
+        "get_weather": "get_weather",
+        "get_time_date": "get_time_date",
+        "set_reminder": "set_reminder",
+        "get_clipboard": "get_clipboard",
+        "set_clipboard": "set_clipboard",
+        "lock_system": "lock_system",
+        "sleep_system": "sleep_system",
+        "shutdown_system": "shutdown_system",
+    }
+
     def __init__(self):
         self.os_name = platform.system()
         self.username = os.getenv("USERNAME") or os.getenv("USER", "user")
@@ -520,37 +550,13 @@ class SystemAgent:
 
     async def execute(self, action: str, params: Dict) -> TaskResult:
         """Route a parsed action to the correct handler."""
-        action_map = {
-            "create_file": self.create_file,
-            "read_file": self.read_file,
-            "delete_file": self.delete_file,
-            "list_directory": self.list_directory,
-            "search_files": self.search_files,
-            "run_command": self.run_command,
-            "open_application": self.open_application,
-            "close_application": self.close_application,
-            "get_system_info": self.get_system_info,
-            "open_url": self.open_url,
-            "web_search": self.web_search,
-            "send_whatsapp": self.send_whatsapp_message,
-            "send_email": self.send_email,
-            "take_screenshot": self.take_screenshot,
-            "type_text": self.type_text,
-            "click_at": self.click_at,
-            "press_key": self.press_key,
-            "set_volume": self.set_volume,
-            "get_weather": self.get_weather,
-            "get_time_date": self.get_time_date,
-            "set_reminder": self.set_reminder,
-            "get_clipboard": self.get_clipboard,
-            "set_clipboard": self.set_clipboard,
-            "lock_system": self.lock_system,
-            "sleep_system": self.sleep_system,
-        }
-
-        handler = action_map.get(action)
-        if not handler:
+        handler_name = self.ACTION_MAP.get(action)
+        if not handler_name:
             return TaskResult(False, f"Unknown action: {action}")
+
+        handler = getattr(self, handler_name, None)
+        if not handler:
+            return TaskResult(False, f"Handler {handler_name} not found")
 
         try:
             return await handler(**params)

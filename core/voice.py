@@ -147,21 +147,27 @@ class VoiceSystem:
             )
             await communicate.save(tmp_path)
 
-            # Play audio (Windows)
+            # Play audio silently on Windows
             if os.name == "nt":
-                subprocess.run(
-                    ["powershell", "-c", f"(New-Object Media.SoundPlayer '{tmp_path}').PlaySync()"],
-                    capture_output=True
-                )
-                # Use Windows Media Player for mp3
-                os.startfile(tmp_path)
-                await asyncio.sleep(len(text) * 0.065)  # Estimate playback time
+                import win32com.client
+                player = win32com.client.Dispatch("WMPlayer.OCX")
+                player.url = tmp_path
+                
+                # Wait for playback to finish
+                while player.playState != 1: # 1 = stopped
+                    if player.playState == 3: # 3 = stopped (completed)
+                        break
+                    await asyncio.sleep(0.1)
             else:
                 subprocess.run(["mpg123", "-q", tmp_path])
         finally:
             try:
+                # We need to make sure WMP has released the file before deleting
+                # Since we're in async, we can't easily wait for the COM object
+                # But the loop above should handle it.
                 os.unlink(tmp_path)
             except Exception:
+                # If file is still locked, we'll just leave it in temp
                 pass
 
     def _speak_pyttsx3(self, text: str):
